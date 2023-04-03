@@ -84,7 +84,7 @@ const createSession = function(id, description) {
                 '--no-zygote',
                 '--single-process', // <- this one doesn't works in Windows
                 '--disable-gpu',
-                'shm-size=512mb'
+                '--shm-size=712mb'
             ],
         },
         authStrategy: new LocalAuth({
@@ -209,7 +209,7 @@ app.post('/send-message', async(req, res) => {
     console.log(req.body);
 
     const sender = req.body.sender;
-    const number = phoneNumberFormatter(req.body.number);
+    const number = req.body.number + '@c.us'; //phoneNumberFormatter(req.body.number);
     const message = req.body.message;
 
     const client = sessions.find(sess => sess.id == sender).client;
@@ -234,7 +234,7 @@ app.post('/send-message', async(req, res) => {
     if (!isRegisteredNumber) {
         return res.status(422).json({
             status: false,
-            message: 'The number is not registered'
+            message: 'El número destino no tiene registrado whatsapp '
         });
     }
 
