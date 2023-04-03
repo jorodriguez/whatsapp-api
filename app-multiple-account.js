@@ -208,8 +208,9 @@ app.post('/send-message', async(req, res) => {
     console.log("@send-message");
     console.log(req.body);
 
+    //  try {
     const sender = req.body.sender;
-    const number = req.body.number + '@c.us'; //phoneNumberFormatter(req.body.number);
+    const number = req.body.number; //phoneNumberFormatter(req.body.number);
     const message = req.body.message;
 
     const client = sessions.find(sess => sess.id == sender).client;
@@ -222,6 +223,8 @@ app.post('/send-message', async(req, res) => {
         })
     }
 
+    const formaterNumberValidate = `521${number}@c.us`;
+    console.log("formaterNumberValidate " + formaterNumberValidate);
     /**
      * Check if the number is already registered
      * Copied from app.js
@@ -229,7 +232,7 @@ app.post('/send-message', async(req, res) => {
      * Please check app.js for more validations example
      * You can add the same here!
      */
-    const isRegisteredNumber = await client.isRegisteredUser(number);
+    const isRegisteredNumber = await client.isRegisteredUser(formaterNumberValidate);
 
     if (!isRegisteredNumber) {
         return res.status(422).json({
@@ -238,20 +241,50 @@ app.post('/send-message', async(req, res) => {
         });
     }
 
-    client.sendMessage(number, message).then(response => {
-        console.log("@sendMess");
+    /*
+            const resp = await client.sendMessage(number, message);
+
+            console.log("Esperando 5 segundos");
+
+            await sleep(500);
+
+            console.log("Regresando respuesta ");
+
+            res.status(200).json({
+                status: true,
+                response: resp
+            });
+    */
+
+
+    client.sendMessage(formaterNumberValidate, message).then(response => {
+        console.log("@mensaje enviado");
         res.status(200).json({
             status: true,
             response: response
         });
     }).catch(err => {
-        console.log("XXX ERROR");
+        console.log("XXX ERROR al enviar mensaje " + err);
         res.status(500).json({
             status: false,
             response: err
         });
     });
+
+    /*  } catch (e) {
+          console.log("XXX ERROR al enviar mensaje " + e);
+          res.status(500).json({
+              status: false,
+              response: e
+          });
+      }*/
 });
+
+//const sleep = (ms) => new Promise(resolve => setTimeout(() => { resolve }, ms));
+
+function sleep(ms) {
+    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, ms || 500) });
+}
 
 server.listen(port, function() {
     console.log('App running on *: ' + port);
