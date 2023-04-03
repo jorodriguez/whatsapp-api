@@ -10,7 +10,7 @@ const fileUpload = require('express-fileupload');
 const axios = require('axios');
 const mime = require('mime-types');
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5001;
 
 const app = express();
 const server = http.createServer(app);
@@ -59,7 +59,8 @@ const client = new Client({
 client.on('message', msg => {
   if (msg.body == '!ping') {
     msg.reply('pong');
-  } else if (msg.body == 'good morning') {
+  } 
+  /*else if (msg.body == 'good morning') {
     msg.reply('selamat pagi');
   } else if (msg.body == '!groups') {
     client.getChats().then(chats => {
@@ -76,7 +77,8 @@ client.on('message', msg => {
         msg.reply(replyMsg);
       }
     });
-  }
+
+  }*/
 
   // NOTE!
   // UNCOMMENT THE SCRIPT BELOW IF YOU WANT TO SAVE THE MESSAGE MEDIA FILES
@@ -122,13 +124,13 @@ client.initialize();
 
 // Socket IO
 io.on('connection', function(socket) {
-  socket.emit('message', 'Connecting...');
+  socket.emit('message', 'Conectando...');
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit('qr', url);
-      socket.emit('message', 'QR Code received, scan please!');
+      socket.emit('message', 'Escanea el QR!');
     });
   });
 

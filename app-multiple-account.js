@@ -7,7 +7,7 @@ const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
 const axios = require('axios');
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5001;
 
 const app = express();
 const server = http.createServer(app);
@@ -29,17 +29,20 @@ app.use(express.urlencoded({
 app.use(fileUpload({
   debug: false
 }));
-
+/*
 app.get('/', (req, res) => {
+  createSessionsFileIfNotExists();
+  
   res.sendFile('index-multiple-account.html', {
     root: __dirname
   });
-});
+});*/
 
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
 
 const createSessionsFileIfNotExists = function() {
+  console.log("@createSessionsFileIfNotExists");
   if (!fs.existsSync(SESSIONS_FILE)) {
     try {
       fs.writeFileSync(SESSIONS_FILE, JSON.stringify([]));
@@ -53,6 +56,7 @@ const createSessionsFileIfNotExists = function() {
 createSessionsFileIfNotExists();
 
 const setSessionsFile = function(sessions) {
+  console.log("@setSessionsFile");
   fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function(err) {
     if (err) {
       console.log(err);
@@ -61,6 +65,7 @@ const setSessionsFile = function(sessions) {
 }
 
 const getSessionsFile = function() {
+  console.log("@getSessionsFile ");
   return JSON.parse(fs.readFileSync(SESSIONS_FILE));
 }
 
@@ -151,6 +156,8 @@ const createSession = function(id, description) {
 }
 
 const init = function(socket) {
+  console.log("@init");
+
   const savedSessions = getSessionsFile();
 
   if (savedSessions.length > 0) {
@@ -175,7 +182,15 @@ const init = function(socket) {
   }
 }
 
-init();
+//init();
+app.get('/', (req, res) => {
+  createSessionsFileIfNotExists();
+  init();
+  
+  res.sendFile('index-multiple-account.html', {
+    root: __dirname
+  });
+});
 
 // Socket IO
 io.on('connection', function(socket) {
@@ -189,19 +204,20 @@ io.on('connection', function(socket) {
 
 // Send message
 app.post('/send-message', async (req, res) => {
-  console.log(req);
+  console.log("@send-message");
+  console.log(req.body);
 
   const sender = req.body.sender;
   const number = phoneNumberFormatter(req.body.number);
   const message = req.body.message;
 
-  const client = sessions.find(sess => sess.id == sender)?.client;
+  const client = sessions.find(sess => sess.id == sender).client;
 
   // Make sure the sender is exists & ready
   if (!client) {
     return res.status(422).json({
       status: false,
-      message: `The sender: ${sender} is not found!`
+      message: `El sender  ${sender} no se encuentra!`
     })
   }
 
@@ -222,11 +238,13 @@ app.post('/send-message', async (req, res) => {
   }
 
   client.sendMessage(number, message).then(response => {
+    console.log("@sendMess");
     res.status(200).json({
       status: true,
       response: response
     });
   }).catch(err => {
+    console.log("XXX ERROR");
     res.status(500).json({
       status: false,
       response: err
